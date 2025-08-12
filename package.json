@@ -1,0 +1,33 @@
+{
+    "name": "acmdp",
+    "version": "1.0.0",
+    "description": "Command & Arguments Parser for Node.js",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist/**/*"
+    ],
+    "scripts": {
+        "build": "tsup src/index.ts --format esm,cjs --dts",
+        "test": "mocha",
+        "prepublishOnly": "npm run build"
+    },
+    "keywords": [
+        "cli",
+        "parser",
+        "command",
+        "arguments",
+        "typescript",
+        "nodejs"
+    ],
+    "devDependencies": {
+        "@types/chai": "^5.2.2",
+        "@types/mocha": "^10.0.10",
+        "chai": "^4.3.7",
+        "mocha": "^10.8.2",
+        "ts-node": "^10.9.2",
+        "tsconfig-paths": "^4.2.0",
+        "tsup": "^7.1.0",
+        "typescript": "^5.1.6"
+    }
+}
