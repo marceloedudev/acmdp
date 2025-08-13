@@ -20,6 +20,14 @@
         "typescript",
         "nodejs"
     ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/marceloedudev/acmdp.git"
+    },
+    "bugs": {
+        "url": "https://github.com/marceloedudev/acmdp/issues"
+    },
+    "homepage": "https://github.com/marceloedudev/acmdp#readme",
     "devDependencies": {
         "@types/chai": "^5.2.2",
         "@types/mocha": "^10.0.10",

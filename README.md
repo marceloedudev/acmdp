@@ -10,6 +10,14 @@ A lightweight and flexible Node.js/TypeScript utility for parsing **CLI commands
 
 Parses an entire CLI command string into its structured components.
 
+## 📦 Installation
+
+```bash
+npm install acmdp
+```
+
+---
+
 #### Example
 
 ```typescript
