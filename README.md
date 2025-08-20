@@ -24,8 +24,6 @@ npm install acmdp
 const input = `npx cross-env NODE_ENV=development ts-node --transpile-only -r ts-node/register -r tsconfig-paths/register ./src/Main.ts --item1=2`;
 
 const result = new CommandParser(input).parse();
-
-console.log(result);
 ```
 
 #### Output
@@ -58,7 +56,7 @@ Parses a list of CLI arguments (`string[]`) into a JavaScript object.
 #### Example — Multiple Values
 
 ```typescript
-const result = new ArgumentsParse([
+const result = new ArgumentsParser([
     "--tag",
     "a",
     "--tag",
@@ -66,8 +64,6 @@ const result = new ArgumentsParse([
     "--tag",
     "c",
 ]).parse();
-
-console.log(result);
 ```
 
 #### Output
@@ -83,9 +79,7 @@ console.log(result);
 #### Example — Boolean & Primitive Values
 
 ```typescript
-const result = new ArgumentsParse(["--isAdmin", "true"]).parse();
-
-console.log(result);
+const result = new ArgumentsParser(["--isAdmin", "true"]).parse();
 ```
 
 #### Output
@@ -94,6 +88,28 @@ console.log(result);
 {
     "isAdmin": true
 }
+```
+
+---
+
+### **3️⃣ ArgumentsParser.unparse()**
+
+Converts a parsed arguments object back into an array of CLI argument strings.
+
+#### Example — Object to Arguments
+
+```typescript
+const args = ArgumentsParser.unparse({
+    tag: ["a", "b", "c"],
+    isAdmin: true,
+    age: 30,
+});
+```
+
+#### Output
+
+```json
+["--tag", "a", "--tag", "b", "--tag", "c", "--isAdmin", "--age", "30"]
 ```
 
 ---

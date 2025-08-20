@@ -1,3 +1,4 @@
+import { FlagValidator } from "./FlagValidator";
 import InvalidInputException from "@/error/InvalidInputException";
 import NotFoundException from "@/error/NotFoundException";
 
@@ -18,10 +19,10 @@ export class CommandParser {
         if (!this.input) {
             throw new NotFoundException("Empty input command");
         }
-        const invalidFlags = this.filterInvalidShortFlags(
-            this.extractSingleDashKeys(this.input)
+        const invalidFlags = new FlagValidator().filterInvalidFlags(
+            new FlagValidator().extractKeys(this.input)
         );
-        if (invalidFlags.length) {
+        if (invalidFlags.length > 0) {
             throw new InvalidInputException(
                 `Invalid arguments: ${invalidFlags.join(",")}`
             );
@@ -96,27 +97,6 @@ export class CommandParser {
             filenameOption,
             argv,
         };
-    }
-
-    private cleanInput(text: string): string {
-        return text
-            .replace(/"[^"]*"/g, "")
-            .replace(/\$\([^)]*\)/g, "")
-            .replace(/\([^)]*\)/g, "");
-    }
-
-    private extractSingleDashKeys(text: string): string[] {
-        const cleaned = this.cleanInput(text);
-        const tokens = cleaned.trim().split(/\s+/);
-        return tokens
-            .filter((token) => token.startsWith("-") && !token.startsWith("--"))
-            .map((token) =>
-                token.includes("=") ? token.split("=")[0] : token
-            );
-    }
-
-    private filterInvalidShortFlags(flags: string[]): string[] {
-        return flags.filter((flag) => /^-.{2,}$/.test(flag));
     }
 
     private hasExtension(value: string): boolean {

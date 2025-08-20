@@ -28,6 +28,7 @@
         "url": "https://github.com/marceloedudev/acmdp/issues"
     },
     "homepage": "https://github.com/marceloedudev/acmdp#readme",
+    "license": "MIT",
     "devDependencies": {
         "@types/chai": "^5.2.2",
         "@types/mocha": "^10.0.10",
