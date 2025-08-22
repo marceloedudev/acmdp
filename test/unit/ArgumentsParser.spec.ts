@@ -107,7 +107,12 @@ describe("ArgumentsParse", () => {
         it("should throw error with invalid values/flags", () => {
             expect(() =>
                 new ArgumentsParser(["-da", "---fa"]).parse()
-            ).to.throw(InvalidInputException, "Invalid arguments: -da,---fa");
+            ).to.throw(InvalidInputException, "Invalid arguments: ---fa");
+        });
+
+        it("should parse plus(+) argument", () => {
+            const parsed = new ArgumentsParser(["+value"]).parse();
+            expect(parsed).to.deep.equal({ value: true });
         });
     });
 

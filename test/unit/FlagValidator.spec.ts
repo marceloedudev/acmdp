@@ -61,11 +61,6 @@ describe("FlagValidator", () => {
     });
 
     describe("filterInvalidFlags", () => {
-        it("should flag -aa as invalid", () => {
-            const result = validator.filterInvalidFlags(["-aa"]);
-            expect(result).to.deep.equal(["-aa"]);
-        });
-
         it("should flag --- as invalid", () => {
             const result = validator.filterInvalidFlags(["---"]);
             expect(result).to.deep.equal(["---"]);
@@ -87,9 +82,18 @@ describe("FlagValidator", () => {
         });
 
         it("should handle multiple flags and return only invalid ones", () => {
-            const input = ["-a", "-aa", "---", "-b", "----c"];
+            const input = [
+                "-a",
+                "-aa",
+                "---",
+                "-b",
+                "----c",
+                "++++",
+                "+add",
+                "++set",
+            ];
             const result = validator.filterInvalidFlags(input);
-            expect(result).to.deep.equal(["-aa", "---", "----c"]);
+            expect(result).to.deep.equal(["---", "----c", "++++"]);
         });
     });
 });

@@ -7,12 +7,6 @@ class TestableCommandParser extends CommandParser {
     public tokenizePublic(input: string): string[] {
         return this["tokenize"](input);
     }
-    public isFilenamePublic(value: string): boolean {
-        return this["isFilename"](value);
-    }
-    public hasExtensionPublic(value: string): boolean {
-        return this["hasExtension"](value);
-    }
 }
 
 describe("CommandParser", () => {
@@ -353,7 +347,129 @@ describe("CommandParser", () => {
                 input: "ts-node --transpile-only ./src/Main.ts",
                 expected: {
                     command: "ts-node",
-                    execArgv: ["--transpile-only"],
+                    execArgv: [],
+                    filename: "",
+                    filenameOption: [],
+                    argv: ["--transpile-only", "./src/Main.ts"],
+                },
+            },
+            {
+                input: "./srcds_run -game left4dead2 -console -ip 0.0.0.0 -port 27015 +maxplayers 8 +map c8m1_apartment",
+                expected: {
+                    command: "",
+                    execArgv: [],
+                    filename: "./srcds_run",
+                    filenameOption: [],
+                    argv: [
+                        "-game",
+                        "left4dead2",
+                        "-console",
+                        "-ip",
+                        "0.0.0.0",
+                        "-port",
+                        "27015",
+                        "+maxplayers",
+                        "8",
+                        "+map",
+                        "c8m1_apartment",
+                    ],
+                },
+            },
+            {
+                input: "screen -S l4d2 ./srcds_run -game left4dead2 -console -ip 0.0.0.0 -port 27015 +maxplayers 20 +map c8m1_apartment",
+                expected: {
+                    command: "screen",
+                    execArgv: ["-S", "l4d2"],
+                    filename: "./srcds_run",
+                    filenameOption: [],
+                    argv: [
+                        "-game",
+                        "left4dead2",
+                        "-console",
+                        "-ip",
+                        "0.0.0.0",
+                        "-port",
+                        "27015",
+                        "+maxplayers",
+                        "20",
+                        "+map",
+                        "c8m1_apartment",
+                    ],
+                },
+            },
+            {
+                input: "chmod +x script.sh",
+                expected: {
+                    command: "chmod",
+                    execArgv: [],
+                    filename: "",
+                    filenameOption: [],
+                    argv: ["+x", "script.sh"],
+                },
+            },
+            {
+                input: "chmod -x script.sh",
+                expected: {
+                    command: "chmod",
+                    execArgv: [],
+                    filename: "",
+                    filenameOption: [],
+                    argv: ["-x", "script.sh"],
+                },
+            },
+            {
+                input: "node app.js -a --foo=bar +test file.txt",
+                expected: {
+                    command: "node",
+                    execArgv: [],
+                    filename: "app.js",
+                    filenameOption: [],
+                    argv: ["-a", "--foo", "bar", "+test", "file.txt"],
+                },
+            },
+            {
+                input: `sv_gametypes "coop,survival"`,
+                expected: {
+                    command: "sv_gametypes",
+                    execArgv: [],
+                    filename: "",
+                    filenameOption: [],
+                    argv: [`"coop,survival"`],
+                },
+            },
+            {
+                input: "chmod u+x start-server.sh",
+                expected: {
+                    command: "chmod",
+                    execArgv: [],
+                    filename: "",
+                    filenameOption: [],
+                    argv: ["u+x", "start-server.sh"],
+                },
+            },
+            {
+                input: "./steamcmd.sh +force_install_dir ../l4d2 +@sSteamCmdForcePlatformType linux +app_update 222860 +quit",
+                expected: {
+                    command: "",
+                    execArgv: [],
+                    filename: "./steamcmd.sh",
+                    filenameOption: [],
+                    argv: [
+                        "+force_install_dir",
+                        "../l4d2",
+                        "+@sSteamCmdForcePlatformType",
+                        "linux",
+                        "+app_update",
+                        "222860",
+                        "+quit",
+                    ],
+                },
+            },
+            {
+                input: "ts-node --transpile-only -r ts-node/register ./src/Main.ts",
+                expected: {
+                    command: "ts-node",
+                    execArgv: ["--transpile-only", "-r", "ts-node/register"],
                     filename: "./src/Main.ts",
                     filenameOption: [],
                     argv: [],
@@ -370,24 +486,6 @@ describe("CommandParser", () => {
 
         it("throws Exception on empty input", () => {
             expect(() => new CommandParser("")).to.throw("Empty input command");
-        });
-
-        it("throws Exception on invalid short flag -abc", () => {
-            expect(() => new CommandParser("-abc value")).to.throw(
-                "Invalid arguments: -abc"
-            );
-        });
-
-        it("throws Exception on multiple invalid short flags", () => {
-            expect(() => new CommandParser("-abc -xx -yz")).to.throw(
-                "Invalid arguments: -abc,-xx,-yz"
-            );
-        });
-
-        it("throws Exception on single dash + equal sign invalid syntax", () => {
-            expect(() => new CommandParser("-foo=bar")).to.throw(
-                "Invalid arguments: -foo"
-            );
         });
     });
 
@@ -449,42 +547,6 @@ describe("CommandParser", () => {
         it("should handle empty value after equals", () => {
             const result = parser["splitArgOnEquals"]("--flag=");
             expect(result).to.deep.equal(["--flag"]);
-        });
-    });
-
-    describe("isFilename()", () => {
-        const parser = new TestableCommandParser("echo");
-
-        it("recognizes JS/TS files", () => {
-            expect(parser.isFilenamePublic("file.js")).to.be.true;
-            expect(parser.isFilenamePublic("main.ts")).to.be.true;
-            expect(parser.isFilenamePublic("module.mjs")).to.be.true;
-        });
-
-        it("recognizes relative/absolute paths", () => {
-            expect(parser.isFilenamePublic("./src/index.ts")).to.be.true;
-            expect(parser.isFilenamePublic("/usr/bin/test.js")).to.be.true;
-            expect(parser.isFilenamePublic(".")).to.be.true;
-        });
-
-        it("returns false for non-filenames", () => {
-            expect(parser.isFilenamePublic("npm")).to.be.false;
-            expect(parser.isFilenamePublic("start")).to.be.false;
-        });
-    });
-
-    describe("hasExtension()", () => {
-        const parser = new TestableCommandParser("echo");
-
-        it("detects JS/TS extensions", () => {
-            expect(parser.hasExtensionPublic("test.js")).to.be.true;
-            expect(parser.hasExtensionPublic("test.ts")).to.be.true;
-            expect(parser.hasExtensionPublic("test.cjs")).to.be.true;
-        });
-
-        it("returns false when no recognized extension", () => {
-            expect(parser.hasExtensionPublic("command")).to.be.false;
-            expect(parser.hasExtensionPublic("file.txt")).to.be.false;
         });
     });
 });

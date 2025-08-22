@@ -1,3 +1,4 @@
+import { FileExtension } from "./FileExtension";
 import { FlagValidator } from "./FlagValidator";
 import InvalidInputException from "@/error/InvalidInputException";
 import NotFoundException from "@/error/NotFoundException";
@@ -30,6 +31,14 @@ export class CommandParser {
         this.parts = this.tokenize(this.input);
     }
 
+    private getDifferenceByIndex(list1: string[], list2: string[]): string[] {
+        let i = 0;
+        while (i < list1.length && i < list2.length && list1[i] === list2[i]) {
+            i++;
+        }
+        return list1.slice(i);
+    }
+
     public parse(): ParsedCommand {
         let command = "";
         let filename = "";
@@ -37,58 +46,68 @@ export class CommandParser {
         let filenameOption: string[] = [];
         let argv: string[] = [];
 
-        for (let i = 0; i < this.parts.length; i++) {
-            const part = this.parts[i];
-            if (part.startsWith("-")) break;
-            if (
-                !part.startsWith("-") &&
-                !this.hasExtension(part) &&
-                !part.startsWith(".")
-            ) {
-                command = part;
-                break;
-            }
+        const [firstPart] = this.parts;
+        if (
+            !firstPart.startsWith("-") &&
+            !firstPart.startsWith("+") &&
+            !new FileExtension().hasExecutableExtension(firstPart) &&
+            !firstPart.startsWith(".")
+        ) {
+            command = firstPart;
         }
 
-        const commandIndex = this.parts.indexOf(command);
-        const remaining = [...this.parts];
-        if (commandIndex !== -1) {
-            remaining.splice(commandIndex, 1);
+        let remaining = [...this.parts];
+        if (command?.length > 0) {
+            remaining.splice(0, 1);
         }
 
         const filenameIdx = (() => {
             let index = -1;
             for (let i = 0; i < remaining.length; i++) {
-                if (this.isFilename(remaining[i])) {
+                const arg = remaining[i];
+                const prev = remaining[i - 1];
+                if (
+                    !FlagValidator.isFlagRelation(arg, prev) &&
+                    new FileExtension().isExecutablePath(arg)
+                ) {
                     index = i;
+                    break;
                 }
             }
             return index;
         })();
 
         if (filenameIdx !== -1) {
-            filename = remaining[filenameIdx];
+            const restArgv = remaining.slice(0, filenameIdx);
 
-            execArgv = remaining
-                .slice(0, filenameIdx)
+            execArgv = restArgv
                 .flatMap((arg) => this.splitArgOnEquals(arg))
                 .filter(Boolean);
 
-            let i = filenameIdx + 1;
-            while (i < remaining.length && !remaining[i].startsWith("-")) {
+            remaining = this.getDifferenceByIndex(remaining, restArgv);
+        }
+
+        const [firstRemaining] = remaining;
+        if (new FileExtension().isExecutablePath(firstRemaining)) {
+            filename = firstRemaining;
+            remaining = this.getDifferenceByIndex(remaining, [filename]);
+
+            for (let i = 0; i < remaining.length; i++) {
+                if (
+                    remaining[i].startsWith("-") ||
+                    remaining[i].startsWith("+")
+                ) {
+                    break;
+                }
                 filenameOption.push(remaining[i]);
-                i++;
             }
 
-            const rawArgv = remaining.slice(i);
-            argv = rawArgv
-                .flatMap((arg) => this.splitArgOnEquals(arg))
-                .filter(Boolean);
-        } else {
-            argv = remaining
-                .flatMap((arg) => this.splitArgOnEquals(arg))
-                .filter(Boolean);
+            remaining = this.getDifferenceByIndex(remaining, filenameOption);
         }
+
+        argv = remaining
+            .flatMap((arg) => this.splitArgOnEquals(arg))
+            .filter(Boolean);
 
         return {
             command,
@@ -97,15 +116,6 @@ export class CommandParser {
             filenameOption,
             argv,
         };
-    }
-
-    private hasExtension(value: string): boolean {
-        return (
-            value.endsWith(".js") ||
-            value.endsWith(".ts") ||
-            value.endsWith(".mjs") ||
-            value.endsWith(".cjs")
-        );
     }
 
     private tokenize(input: string): string[] {
@@ -184,18 +194,5 @@ export class CommandParser {
         const key = arg.slice(0, index);
         const value = arg.slice(index + 1);
         return value ? [key, value] : [key];
-    }
-
-    private isFilename(value: string): boolean {
-        return (
-            value.endsWith(".js") ||
-            value.endsWith(".ts") ||
-            value.endsWith(".mjs") ||
-            value.endsWith(".cjs") ||
-            value === "." ||
-            value.startsWith(".") ||
-            value.startsWith("./") ||
-            value.startsWith("/")
-        );
     }
 }

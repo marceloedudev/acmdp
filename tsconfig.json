@@ -12,7 +12,8 @@
         "strict": true,
         "skipLibCheck": true,
         "declaration": true,
-        "outDir": "./dist"
+        "outDir": "./dist",
+        "types": ["mocha", "chai"]
     },
     "include": ["src", "test"]
 }

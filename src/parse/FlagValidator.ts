@@ -24,19 +24,44 @@ export class FlagValidator {
 
     public filterInvalidFlags(flags: string[]): string[] {
         return flags.filter((flag) => {
-            if (!flag.startsWith("-")) {
-                return false;
-            }
-
-            if (/^---+/.test(flag)) {
-                return true;
-            }
-
-            if (/^-[^-]{2,}$/.test(flag)) {
+            if (/^---+/.test(flag) || /^(\+\+\+)+/.test(flag)) {
                 return true;
             }
 
             return false;
         });
+    }
+
+    public static isArgvLongOption(arg: string) {
+        return /^--[a-zA-Z0-9]/.test(arg);
+    }
+
+    public static isArgvShortOption(arg: string) {
+        return /^-[a-zA-Z]/.test(arg);
+    }
+
+    public static isArgvPlusOption(arg: string) {
+        return /^\+[a-zA-Z]/.test(arg);
+    }
+
+    public static isFlagRelation(arg: string, prevArg?: string): boolean {
+        if (
+            FlagValidator.isArgvShortOption(arg) ||
+            FlagValidator.isArgvLongOption(arg) ||
+            FlagValidator.isArgvPlusOption(arg)
+        ) {
+            return false;
+        }
+
+        if (
+            prevArg &&
+            (FlagValidator.isArgvShortOption(prevArg) ||
+                FlagValidator.isArgvLongOption(prevArg) ||
+                FlagValidator.isArgvPlusOption(prevArg))
+        ) {
+            return true;
+        }
+
+        return false;
     }
 }

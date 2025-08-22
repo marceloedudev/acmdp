@@ -27,15 +27,15 @@ export class ArgumentsParser {
         const result: any = {};
         for (let index = 0; index < this.args.length; index++) {
             const arg = this.args[index];
-            if (!arg.startsWith("-")) {
+            if (!(arg.startsWith("-") || arg.startsWith("+"))) {
                 continue;
             }
 
-            const key = arg.replace(/^--?/, "");
+            const key = arg.replace(/^--?/, "").replace(/^\++?/, "");
             const next = this.args[index + 1];
             let value: boolean | string | number = true;
 
-            if (next && !next.startsWith("-")) {
+            if (next && !next.startsWith("-") && !next.startsWith("+")) {
                 value = next;
                 index++;
             }
